@@ -54,3 +54,9 @@ tests/
 
 # Claude context file
 CLAUDE.md
+
+# Internal dev docs (excluded from repo)
+CHANGELOG.md
+TEST_REPORT.md
+ui-design-requirements.md
+测试报告.md

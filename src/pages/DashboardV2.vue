@@ -3,7 +3,7 @@
     <div class="status-bar">
       <span class="status-bar-title">WiFi-SPI 控制器</span>
       <div class="status-bar-right">
-        <a href="#" class="author-link" aria-label="Powered By whitiee" title="Powered By whitiee">
+        <a href="https://github.com/whitieeeeeeeeeeeee/websocket-game-pad" class="author-link" aria-label="Powered By whitiee" title="Powered By whitiee">
           <span>Powered By whitiee</span>
           <Github :size="14" />
         </a>
