@@ -1,0 +1,56 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.vite
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Trae / Claude context folders (excluded from repo)
+.trae/
+.claude/
+
+# Config with local settings (root only, allow share/config.json)
+/config.json
+
+# Test files and screenshots
+verify_*.py
+test_*.py
+verify-*-screenshots/
+verify_screenshots/
+verify_backend_screenshots/
+verify_enhance_screenshots/
+verify_fix_screenshots/
+verify_mapping_screenshots/
+audit-shots/
+tests/
+
+# Build output (root dist only, allow share/dist/ for release)
+/dist/
+
+# Claude context file
+CLAUDE.md

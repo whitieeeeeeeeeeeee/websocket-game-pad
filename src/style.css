@@ -1,0 +1,917 @@
+/* ============================================================
+   WiFi-SPI Controller Design System
+   逐字复制自 wifispi-controller-design/pages/dashboard.html
+   ============================================================ */
+
+/* ============================================================
+   1. Theme Variables (来自 dashboard.html <style id="theme-vars">)
+   ============================================================ */
+/* Source: structured-spec — monochrome minimalist palette (black/white/gray) */
+/* ============================================================
+   PRIMITIVES (theme-independent)
+   Six families: brand / background / text / icon are 10-step
+   scales; state-success / state-error are functional sets.
+   The system is monochrome — `brand` is a refined cool-neutral
+   scale used for primary surfaces/actions; the other neutrals
+   share the pure-gray ramp. Never consume primitives directly
+   in product code — use the semantic role tokens or the
+   --color-* alias layer below.
+   ============================================================ */
+:root {
+  /* brand — refined cool-neutral identity (primary, ring, charts) */
+  --brand-50: #fafafa;
+  --brand-100: #f4f4f5;
+  --brand-200: #e4e4e7;
+  --brand-300: #d4d4d8;
+  --brand-400: #a1a1aa;
+  --brand-500: #71717a;
+  --brand-600: #52525b;
+  --brand-700: #3f3f46;
+  --brand-800: #27272a;
+  --brand-900: #18181b; /* @primary */
+
+  /* background — pure-neutral surface ramp (page, card, muted, dark surfaces) */
+  --background-50: #ffffff; /* @primary */
+  --background-100: #fafafa;
+  --background-200: #f5f5f5;
+  --background-300: #e5e5e5;
+  --background-400: #d4d4d4;
+  --background-500: #a3a3a3;
+  --background-600: #404040;
+  --background-700: #262626;
+  --background-800: #171717;
+  --background-900: #0a0a0a;
+
+  /* text — pure-neutral ink ramp (foreground, secondary, muted, inverse) */
+  --text-50: #fafafa;
+  --text-100: #ededed;
+  --text-200: #d4d4d4;
+  --text-300: #a1a1a1;
+  --text-400: #858585;
+  --text-500: #6e6e6e;
+  --text-600: #525252;
+  --text-700: #404040;
+  --text-800: #171717;
+  --text-900: #0a0a0a;
+
+  /* icon — pure-neutral icon ramp (default, muted, disabled, inverse) */
+  --icon-50: #fafafa;
+  --icon-100: #e5e5e5;
+  --icon-200: #d4d4d4;
+  --icon-300: #b0b0b0;
+  --icon-400: #8f8f8f;
+  --icon-500: #6e6e6e;
+  --icon-600: #525252;
+  --icon-700: #404040;
+  --icon-800: #262626; /* @primary */
+  --icon-900: #0a0a0a;
+
+  /* ============================================================
+     SEMANTIC ROLE TOKENS — light theme
+     ============================================================ */
+
+  /* surfaces */
+  --background: var(--background-50);
+  --card: var(--background-50);
+  --popover: var(--background-50);
+  --muted: var(--background-100);
+
+  /* foregrounds */
+  --foreground: var(--brand-900);
+  --card-foreground: var(--brand-900);
+  --popover-foreground: var(--brand-900);
+  --primary-foreground: var(--brand-50);
+  --secondary-foreground: var(--brand-900);
+  --muted-foreground: var(--brand-500);
+  --accent-foreground: var(--brand-900);
+  --destructive-foreground: var(--background-50);
+  --sidebar-foreground: var(--brand-900);
+  --sidebar-primary-foreground: var(--brand-50);
+  --sidebar-accent-foreground: var(--brand-900);
+
+  /* roles */
+  --primary: var(--brand-900);
+  --secondary: var(--brand-100);
+  --accent: var(--brand-100);
+  --input: var(--brand-200);
+  --ring: var(--brand-900);
+
+  /* border */
+  --border: var(--brand-200);
+  --border-strong: var(--brand-300);
+
+  /* state-success */
+  --success: #16a34a;
+  --success-foreground: var(--background-50);
+  --success-subtle: #f0fdf4;
+  --success-border: #bbf7d0;
+  --success-text: #15803d;
+
+  /* state-error (exposed as destructive for component compatibility) */
+  --destructive: #dc2626;
+  --destructive-subtle: #fef2f2;
+  --destructive-border: #fecaca;
+  --destructive-text: #b91c1c;
+
+  /* brand surfaces (tints for badges, selected/active backgrounds) */
+  --brand-subtle: var(--brand-100);
+  --brand-border: var(--brand-300);
+
+  /* chart — monochrome ramp from light to near-black for quiet fancy data */
+  --chart-1: var(--brand-200);
+  --chart-2: var(--brand-400);
+  --chart-3: var(--brand-600);
+  --chart-4: var(--brand-800);
+  --chart-5: var(--brand-900);
+
+  /* sidebar — first-class tonal sub-system */
+  --sidebar: var(--brand-50);
+  --sidebar-primary: var(--brand-900);
+  --sidebar-accent: var(--brand-100);
+  --sidebar-border: var(--brand-200);
+  --sidebar-ring: var(--brand-400);
+
+  /* typography */
+  --font-sans: Geist, ui-sans-serif, sans-serif, system-ui;
+  --font-serif: DM Serif Display, ui-serif, serif;
+  --font-mono: Geist Mono, ui-monospace, monospace;
+  --tracking-normal: 0em;
+  --tracking-tight: -0.012em;
+
+  /* radius — modern minimal (12px base) */
+  --radius: 0.75rem;
+  --radius-sm: 0.375rem;
+  --radius-lg: 1rem;
+
+  /* shadow — subtle, layered for fancy depth */
+  --shadow-2xs: 0 1px 0 0 rgba(0, 0, 0, 0.04);
+  --shadow-xs: 0 1px 1px 0 rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 1px 1px 0 rgba(0, 0, 0, 0.03);
+  --shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 20px -6px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 24px 40px -10px rgba(0, 0, 0, 0.10), 0 8px 16px -4px rgba(0, 0, 0, 0.06);
+  --shadow-2xl: 0 32px 56px -14px rgba(0, 0, 0, 0.14);
+
+  /* layout */
+  --spacing: 0.25rem;
+
+  /* ============================================================
+     ALIAS LAYER — preferred names for component authoring.
+     Resolves lazily, so it inherits the .dark overrides below.
+     ============================================================ */
+  --color-surface: var(--background);
+  --color-surface-muted: var(--muted);
+  --color-text: var(--foreground); /* @primary */
+  --color-text-muted: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-brand: var(--primary);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-brand-border: var(--brand-border);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-success-50: var(--success-subtle);
+  --color-success-200: var(--success-border);
+  --color-success-600: var(--success);
+  --color-success-700: var(--success-text);
+  --color-danger-50: var(--destructive-subtle);
+  --color-danger-200: var(--destructive-border);
+  --color-danger-600: var(--destructive);
+  --color-danger-700: var(--destructive-text);
+  --space-4: var(--spacing);
+  --radius-md: var(--radius);
+}
+
+/* ============================================================
+   SEMANTIC ROLE TOKENS — dark theme overrides only.
+   Primitives, charts, alias layer, type, radius, shadow and
+   spacing are inherited from :root unchanged.
+   ============================================================ */
+.dark {
+  /* surfaces */
+  --background: var(--brand-900);
+  --card: var(--brand-800);
+  --popover: var(--brand-800);
+  --muted: var(--brand-800);
+
+  /* foregrounds */
+  --foreground: var(--brand-50);
+  --card-foreground: var(--brand-50);
+  --popover-foreground: var(--brand-50);
+  --primary-foreground: var(--brand-900);
+  --secondary-foreground: var(--brand-50);
+  --muted-foreground: var(--brand-400);
+  --accent-foreground: var(--brand-50);
+  --destructive-foreground: var(--brand-50);
+  --sidebar-foreground: var(--brand-50);
+  --sidebar-primary-foreground: var(--brand-900);
+  --sidebar-accent-foreground: var(--brand-50);
+
+  /* roles */
+  --primary: var(--brand-50);
+  --secondary: var(--brand-800);
+  --accent: var(--brand-700);
+  --input: var(--brand-700);
+  --ring: var(--brand-300);
+
+  /* border */
+  --border: var(--brand-700);
+  --border-strong: var(--brand-600);
+
+  /* state-success */
+  --success: #22c55e;
+  --success-foreground: #052e16;
+  --success-subtle: #0f2417;
+  --success-border: #166534;
+  --success-text: #4ade80;
+
+  /* state-error */
+  --destructive: #ef4444;
+  --destructive-subtle: #2a1416;
+  --destructive-border: #7f1d1d;
+  --destructive-text: #fca5a5;
+
+  /* brand surfaces */
+  --brand-subtle: var(--brand-800);
+  --brand-border: var(--brand-700);
+
+  /* chart — flipped monochrome ramp for dark surfaces */
+  --chart-1: var(--brand-700);
+  --chart-2: var(--brand-500);
+  --chart-3: var(--brand-300);
+  --chart-4: var(--brand-200);
+  --chart-5: var(--brand-50);
+
+  /* sidebar */
+  --sidebar: var(--brand-800);
+  --sidebar-primary: var(--brand-50);
+  --sidebar-accent: var(--brand-700);
+  --sidebar-border: var(--brand-700);
+  --sidebar-ring: var(--brand-400);
+}
+
+/* ============================================================
+   2. Base helpers (来自 dashboard.html <style> 块)
+   ============================================================ */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+[data-icon] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  background-color: currentColor;
+}
+
+/* ============================================================
+   3. Extended Custom Tokens + Reset + Base + Scrollbar + Status Bar +
+      Status Badge + Buttons + Dashboard Grid + Column Panels + Card +
+      Tab Bar + Eyebrow + Panel Title + Gamepad Visualizer +
+      Axis Grid + Range Slider + Toggle + Recording Controls +
+      Playback Section + Recording List + Empty State + Form Inputs +
+      Data Sender + Connected Clients Table + Log Panel + System Log +
+      Tab Content + Responsive
+      (来自 dashboard.html <style> 块)
+   ============================================================ */
+
+/* ── Extended Custom Tokens ──────────────────────────────── */
+:root {
+  --accent-blue: #2563ef;
+  --accent-blue-foreground: #ffffff;
+  --accent-blue-subtle: #eff6ff;
+  --accent-blue-border: #bfdbfe;
+  --state-warning: #eab308;
+  --state-warning-subtle: #fefce8;
+  --state-warning-border: #fde047;
+  --state-warning-text: #a16207;
+  --state-recording: #ea580c;
+  --state-recording-subtle: #fff7ed;
+  --state-recording-border: #fed7aa;
+  --state-recording-text: #9a3412;
+  --state-playback: #7c3aed;
+  --state-playback-subtle: #f5f3ff;
+  --state-playback-border: #c4b5fd;
+  --state-playback-text: #5b21b6;
+  --font-sans: Geist, ui-sans-serif, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: Geist Mono, ui-monospace, "Cascadia Code", "Fira Code", monospace;
+}
+
+/* ── Reset & Base ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body { min-height: 100%; }
+body {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { border: 0; background: none; cursor: pointer; }
+input, select, textarea { border: 1px solid var(--color-border); border-radius: calc(var(--space-4) * 3); background: var(--color-surface); }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+}
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+.panel-scroll::-webkit-scrollbar { width: 4px; }
+.panel-scroll::-webkit-scrollbar-track { background: transparent; }
+.panel-scroll::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 999px; }
+.panel-scroll { scrollbar-width: thin; scrollbar-color: var(--color-border) transparent; }
+
+/* ── Top Status Bar ─────────────────────────────────────── */
+.status-bar {
+  height: 56px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.status-bar-title {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: var(--tracking-tight);
+  margin-right: auto;
+}
+.status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.author-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 180ms ease;
+}
+.author-link:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover, rgba(0, 0, 0, 0.05));
+}
+
+/* ── Status Badge ───────────────────────────────────────── */
+.ws-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transition: all 180ms ease;
+}
+.ws-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.ws-badge.connected { background: var(--color-success-50); border-color: var(--color-success-200); color: var(--color-success-700); }
+.ws-badge.connected .dot { background: var(--color-success-600); }
+.ws-badge.connecting { background: var(--state-warning-subtle); border-color: var(--state-warning-border); color: var(--state-warning-text); }
+.ws-badge.connecting .dot { background: var(--state-warning); animation: pulse-dot 1.2s ease-in-out infinite; }
+.ws-badge.disconnected { background: var(--color-danger-50); border-color: var(--color-danger-200); color: var(--color-danger-700); }
+.ws-badge.disconnected .dot { background: var(--color-danger-600); }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ── Buttons ────────────────────────────────────────────── */
+.btn {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--space-4) * 3);
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 120ms ease;
+}
+.btn:hover { background: var(--accent); }
+.btn:active { transform: scale(0.98); }
+.btn .lucide { flex-shrink: 0; }
+.btn.primary { background: var(--accent-blue); color: var(--accent-blue-foreground); border-color: var(--accent-blue); }
+.btn.primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+.btn.secondary { background: var(--color-surface); }
+.btn.ghost { height: 28px; padding: 0 8px; background: transparent; border-color: transparent; color: var(--color-text-muted); font-size: 11px; }
+.btn.ghost:hover { background: var(--accent); color: var(--color-text); }
+.btn.danger { background: var(--color-danger-600); color: var(--destructive-foreground); border-color: var(--color-danger-600); }
+.btn.danger:hover { background: #b91c1c; border-color: #b91c1c; }
+.btn.icon-only { width: 32px; padding: 0; }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+
+/* ── Dashboard Grid ────────────────────────────────────── */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr 380px;
+  min-height: calc(100vh - 56px);
+}
+
+/* ── Column Panels ──────────────────────────────────────── */
+.col-left, .col-center, .col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+}
+.col-left { border-right: 1px solid var(--color-border); overflow-y: hidden; }
+.col-right { border-left: 1px solid var(--color-border); overflow-y: hidden; height: calc(100vh - 56px); }
+.col-center { overflow-y: hidden; }
+.col-left, .col-right { width: 100%; }
+
+/* ── Card ────────────────────────────────────────────────── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: border-color 200ms ease;
+  flex-shrink: 0;
+}
+.card:hover { border-color: var(--color-border-strong); }
+
+/* ── Tab Bar (Pills) ─────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  transition: all 180ms ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pill:hover { color: var(--color-text); }
+.pill.active { background: var(--accent-blue); color: var(--accent-blue-foreground); border-color: var(--accent-blue); }
+
+/* ── Eyebrow ────────────────────────────────────────────── */
+.eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+
+/* ── Panel Title ─────────────────────────────────────────── */
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.panel-title h3 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ── Gamepad Visualizer ─────────────────────────────────── */
+.gamepad-wrap { position: relative; width: 100%; aspect-ratio: 441/383; margin-bottom: 12px; }
+.gamepad-svg { width: 100%; height: 100%; }
+/* Controller body — gamepadtester.cn style */
+.gp-body { fill: #27272a; stroke: #3f3f46; stroke-width: 3; }
+/* Triggers (LT/RT) — curved paths above shoulders */
+.gp-trigger { fill: #3f3f46; stroke: #52525b; stroke-width: 2; cursor: pointer; transition: fill 180ms ease; }
+.gp-trigger:hover { fill: #52525b; }
+/* Shoulders (LB/RB) */
+.gp-shoulder { fill: #3f3f46; stroke: #52525b; stroke-width: 2; cursor: pointer; transition: fill 180ms ease; }
+.gp-shoulder:hover { fill: #52525b; }
+.gp-shoulder.pressed { fill: #AED581; stroke: #AED581; stroke-width: 2; filter: drop-shadow(0 0 6px #AED581); }
+/* Stick bases (outer ring) */
+.gp-stick-base { fill: #18181b; stroke: #3f3f46; stroke-width: 2; }
+.gp-stick-base.pressed {
+  fill: var(--state-success-subtle, #dcfce7);
+  stroke: var(--success-border, #16a34a);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px var(--state-success-subtle, #dcfce7));
+}
+/* Stick thumbs (inner circle) */
+.gp-stick-thumb { fill: #52525b; stroke: #18181b; stroke-width: 2; transition: fill 100ms ease; cursor: pointer; }
+.gp-stick-thumb:hover { fill: var(--accent-blue); }
+/* Stick inner ring (decorative) */
+.gp-stick-ring { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 2; }
+/* D-pad center */
+.gp-dpad-center { fill: #18181b; stroke: #3f3f46; stroke-width: 2; }
+/* D-pad direction buttons */
+.gp-dpad-dir { fill: #3f3f46; cursor: pointer; transition: fill 180ms ease; }
+.gp-dpad-dir:hover { fill: #52525b; }
+.gp-dpad-dir.pressed { fill: #AED581; stroke: #AED581; stroke-width: 2; filter: drop-shadow(0 0 6px #AED581); }
+/* ABXY buttons — filled circles with colored text */
+.gp-abxy { fill: #3f3f46; stroke: #52525b; stroke-width: 1.5; cursor: pointer; transition: fill 180ms ease, stroke 180ms ease; }
+.gp-abxy-a:hover { fill: #4CAF50; stroke: #4CAF50; }
+.gp-abxy-a.pressed { fill: #4CAF50; stroke: #4CAF50; }
+.gp-abxy-b:hover { fill: #F00056; stroke: #F00056; }
+.gp-abxy-b.pressed { fill: #F00056; stroke: #F00056; }
+.gp-abxy-x:hover { fill: #4DD0E1; stroke: #4DD0E1; }
+.gp-abxy-x.pressed { fill: #4DD0E1; stroke: #4DD0E1; }
+.gp-abxy-y:hover { fill: #FF7043; stroke: #FF7043; }
+.gp-abxy-y.pressed { fill: #FF7043; stroke: #FF7043; }
+/* ABXY text labels */
+.gp-abxy-text { fill: #ffffff; font-size: 12px; font-weight: 900; font-family: var(--font-sans); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+/* Shoulder labels */
+.gp-label { fill: #71717a; font-size: 10px; font-weight: 700; font-family: var(--font-sans); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+/* Select/Start/Guide */
+.gp-meta-btn { fill: #3f3f46; stroke: #52525b; stroke-width: 1.5; cursor: pointer; transition: fill 180ms ease; }
+.gp-meta-btn:hover { fill: #52525b; }
+.gp-meta-btn.pressed { fill: #AED581; }
+.gp-meta-icon { fill: none; stroke: #71717a; stroke-width: 1.5; pointer-events: none; }
+.gp-guide-outer { fill: #27272a; stroke: #3f3f46; stroke-width: 2; }
+.gp-guide-icon { fill: none; stroke: #52525b; stroke-width: 1.5; pointer-events: none; }
+.gamepad-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  border-radius: 16px;
+  color: #d4d4d8;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+/* ── Axis Grid ──────────────────────────────────────────── */
+.axis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.axis-cell {
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: calc(var(--space-4) * 3);
+  background: var(--muted);
+}
+.axis-label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 4px; letter-spacing: 0.08em; }
+.axis-value { display: block; font-family: var(--font-mono); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ── Range Slider ───────────────────────────────────────── */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.slider-row label { font-size: 11px; font-weight: 500; color: var(--color-text-muted); white-space: nowrap; }
+.slider-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  background: var(--color-border);
+  border-radius: 999px;
+  border: 0;
+  outline: none;
+}
+.slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  border: 2px solid var(--accent-blue-foreground);
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+}
+.slider-row input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+}
+.slider-value { font-family: var(--font-mono); font-size: 12px; font-weight: 600; min-width: 28px; text-align: right; }
+
+/* ── Toggle ────────────────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.toggle-row label { font-size: 12px; color: var(--color-text); }
+.toggle {
+  width: 34px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--color-border);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: background 200ms ease;
+}
+.toggle span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
+  transition: transform 200ms ease;
+}
+.toggle.on { background: var(--accent-blue); justify-content: flex-end; }
+.toggle.off { justify-content: flex-start; }
+
+/* ── Recording Controls ─────────────────────────────────── */
+.rec-btn-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.rec-input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.rec-input-row input { flex: 1; height: 32px; padding: 0 10px; font-size: 12px; }
+.rec-timer { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; margin-bottom: 4px; }
+.rec-frames { font-size: 11px; color: var(--color-text-muted); font-family: var(--font-mono); margin-bottom: 12px; }
+
+/* ── Playback Section ───────────────────────────────────── */
+.playback-section { border-top: 1px solid var(--color-border); padding-top: 12px; margin-top: 4px; }
+.playback-progress {
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.playback-progress .bar { display: block; height: 100%; width: 0; border-radius: 999px; background: var(--color-border-strong); transition: width 180ms ease; }
+.playback-progress.playing .bar { background: var(--state-playback); }
+.playback-controls { display: flex; align-items: center; gap: 6px; }
+.speed-pills { display: flex; gap: 4px; margin-left: auto; }
+.speed-pill {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 180ms ease;
+  font-family: var(--font-mono);
+}
+.speed-pill:hover { color: var(--color-text); }
+.speed-pill.active { background: var(--state-playback); color: var(--accent-blue-foreground); border-color: var(--state-playback); }
+.playback-btn.active { background: var(--color-primary-500, #3b82f6); color: #fff; border-color: var(--color-primary-500, #3b82f6); }
+
+/* ── Recording List ──────────────────────────────────────── */
+.rec-list { display: flex; flex-direction: column; gap: 0; }
+.rec-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border);
+}
+.rec-list-item:first-child { border-top: 0; }
+.rec-list-info { flex: 1; min-width: 0; }
+.rec-list-name { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-list-meta { font-size: 10px; color: var(--color-text-muted); font-family: var(--font-mono); }
+.rec-list-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+/* ── Empty State ─────────────────────────────────────────── */
+.empty-state { text-align: center; padding: 24px 0; color: var(--color-text-muted); font-size: 12px; }
+
+/* ── Form Inputs ────────────────────────────────────────── */
+.form-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 8px; }
+.form-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 11px; font-weight: 500; color: var(--color-text-muted); }
+.form-group input, .form-group select { height: 32px; padding: 0 10px; font-size: 12px; }
+.form-group select { cursor: pointer; }
+
+/* ── Data Sender ────────────────────────────────────────── */
+.sender-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sender-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--space-4) * 3);
+  background: var(--color-surface);
+}
+.sender-counter { font-family: var(--font-mono); font-size: 10px; color: var(--color-text-muted); margin-top: 4px; }
+.sender-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+/* ── Connected Clients Table ─────────────────────────────── */
+.clients-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.clients-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+.clients-table td {
+  padding: 8px 8px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.clients-table tbody tr:last-child td { border-bottom: 0; }
+.clients-table .mono { font-family: var(--font-mono); font-size: 11px; }
+
+/* ── Log Panel ───────────────────────────────────────────── */
+.log-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.log-filter { display: flex; align-items: center; gap: 4px; }
+.log-filter label { font-size: 10px; color: var(--color-text-muted); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.log-filter input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent-blue); }
+.log-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; scrollbar-width: thin; scrollbar-color: var(--color-border) transparent; }
+.log-list::-webkit-scrollbar { width: 4px; }
+.log-list::-webkit-scrollbar-track { background: transparent; }
+.log-list::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 999px; }
+.log-entry {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.4;
+  align-items: flex-start;
+}
+.log-entry:first-child { border-top: 0; }
+.log-time { color: var(--color-text-muted); flex-shrink: 0; font-size: 11px; }
+.log-arrow { flex-shrink: 0; font-weight: 600; }
+.log-arrow.send { color: var(--accent-blue); }
+.log-arrow.recv { color: var(--color-success-600); }
+.log-auto-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--state-recording); flex-shrink: 0; margin-top: 5px; }
+.log-content { word-break: break-all; flex: 1; min-width: 0; }
+
+/* ── System Log ─────────────────────────────────────────── */
+.syslog-entry { display: flex; gap: 8px; padding: 6px 0; border-top: 1px solid var(--color-border); font-size: 12px; align-items: flex-start; }
+.syslog-entry:first-child { border-top: 0; }
+.syslog-time { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); flex-shrink: 0; }
+.syslog-level { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; min-width: 36px; }
+.syslog-level.info { color: var(--accent-blue); }
+.syslog-level.warn { color: var(--state-warning); }
+.syslog-level.error { color: var(--color-danger-600); }
+.syslog-msg { flex: 1; min-width: 0; }
+
+/* ── Tab Content ────────────────────────────────────────── */
+.tab-content { display: none; flex: 1; flex-direction: column; min-height: 0; }
+.tab-content.active { display: flex; }
+/* Static preview: show all tab contents */
+.tab-content.preview-visible {
+  display: flex !important;
+  border-top: 2px solid var(--color-border);
+  padding-top: 12px;
+  margin-top: 8px;
+}
+.tab-content.preview-visible:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1400px) {
+  .dashboard-grid { grid-template-columns: 300px 1fr 340px; }
+}
+@media (max-width: 1200px) {
+  .dashboard-grid { grid-template-columns: 280px 1fr 300px; }
+}
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .col-left, .col-right { border: 0; overflow-y: visible; }
+  .col-right { display: none; }
+}
+@media (max-width: 600px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .col-left { overflow-y: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ============================================================
+   4. Controller Config Page 额外样式
+      (来自 controller-config.html 底部 <style> 块)
+   ============================================================ */
+@media (max-width: 1023px) {
+  main > div:last-of-type {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media (max-width: 640px) {
+  main > div:first-of-type {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  main > div:first-of-type > div:last-of-type {
+    width: 100%;
+  }
+}
+/* Focus styles for inputs and selects */
+input:focus-visible, select:focus-visible, button:focus-visible {
+  border-color: var(--ring) !important;
+  box-shadow: 0 0 0 3px var(--brand-subtle) !important;
+  outline: none;
+}
+/* Button hover states */
+button:hover { opacity: 0.85; }
+/* Ghost button hover */
+button[style*="transparent"]:hover {
+  background: var(--muted) !important;
+}
+/* Active pressed row highlight */
+.mapping-row-active {
+  background: var(--state-success-subtle) !important;
+  border-color: var(--success-border) !important;
+}
+/* Selected row highlight (click-to-select, blue theme) */
+.mapping-row-selected {
+  border-color: var(--color-primary-500, #3b82f6) !important;
+  background: var(--color-primary-50, #eff6ff) !important;
+}
+/* Keyboard focus for mapping rows (accessibility) */
+.mapping-row:focus-visible {
+  outline: 2px solid var(--ring, #3b82f6);
+  outline-offset: 2px;
+}
+/* Active button indicator pulse */
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(22, 163, 74, 0); }
+}
+.dot-active {
+  background: var(--state-success) !important;
+  animation: pulse-green 1.5s ease infinite;
+}
+/* Pressed status badge */
+.badge-pressed {
+  background: var(--state-success-subtle) !important;
+  border-color: var(--success-border) !important;
+  color: var(--state-success-text) !important;
+}
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   5. Controller Config Page 额外变量别名
+      (来自 controller-config.html <style> 块, state-success 别名)
+   ============================================================ */
+:root {
+  --accent-blue: #2563ef;
+  --accent-blue-foreground: #ffffff;
+  --accent-blue-subtle: #eff6ff;
+  --accent-blue-border: #bfdbfe;
+  --state-warning: #eab308;
+  --state-warning-subtle: #fefce8;
+  --state-warning-border: #fde047;
+  --state-warning-text: #a16207;
+  --state-recording: #ea580c;
+  --state-recording-subtle: #fff7ed;
+  --state-recording-border: #fed7aa;
+  --state-recording-text: #9a3412;
+  --state-playback: #7c3aed;
+  --state-playback-subtle: #f5f3ff;
+  --state-playback-border: #c4b5fd;
+  --state-playback-text: #5b21b6;
+  --font-sans: Geist, ui-sans-serif, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: Geist Mono, ui-monospace, "Cascadia Code", "Fira Code", monospace;
+  --state-success: var(--success);
+  --state-success-subtle: var(--success-subtle);
+  --state-success-text: var(--success-text);
+}
